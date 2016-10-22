@@ -15,10 +15,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         let width : CGFloat = 100.0;
-        self.view.backgroundColor = UIColor.brownColor();
+        self.view.backgroundColor = UIColor.brown;
         
         let containerView = UIView.init(frame: CGRect.init(x: 0, y: 0, width: width, height: width));
-        containerView.backgroundColor = UIColor.clearColor();
+        containerView.backgroundColor = UIColor.clear;
         self.view.addSubview(containerView);
         containerView.center = self.view.center;
         
@@ -32,10 +32,13 @@ class ViewController: UIViewController {
         
         for _ in 1...6 {
             let view = UIView.init(frame: containerView.bounds);
-            view.backgroundColor = UIColor.whiteColor();
+            view.backgroundColor = UIColor.white;
             containerView.addSubview(view);
             
             faces.append(view);
+            
+            let tap = UITapGestureRecognizer.init(target: self, action: #selector(self.tapView(_:)));
+            view.addGestureRecognizer(tap);
         }
         
         let offset = width / 2.0;
@@ -69,23 +72,28 @@ class ViewController: UIViewController {
         addFace(5, transform: transform);
     }
     
-    func addFace(index:NSInteger, transform:CATransform3D) {
+    func addFace(_ index:NSInteger, transform:CATransform3D) {
         let view = faces[index];
         
         let lab = UILabel.init(frame: view.bounds);
         lab.text = String(index + 1);
-        lab.textAlignment = .Center;
-        lab.textColor = UIColor.blackColor();
-        lab.font = UIFont.systemFontOfSize(17.0);
+        lab.textAlignment = .center;
+        lab.textColor = UIColor.black;
+        lab.font = UIFont.systemFont(ofSize: 17.0);
         view.addSubview(lab);
         
-        view.layer.doubleSided = false;
+        view.layer.isDoubleSided = false;
         view.layer.transform = transform;
         
-        Matrix4Issue.applyLightingToFace(view.layer);
+        Matrix4Issue.applyLighting(toFace: view.layer);
     }
     
-    func applyLightingToFace(face: CALayer) {
+    func tapView(_ tap: UITapGestureRecognizer) {
+        print(tap.view);
+    }
+    
+    
+    func applyLightingToFace(_ face: CALayer) {
         let layer = CALayer.init();
         layer.frame = face.bounds;
         face.addSublayer(layer);
