@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:TransitionDemo/TransitionDemo.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:SixClub3/SixClub3.xcodeproj">
    </FileRef>
    <FileRef
