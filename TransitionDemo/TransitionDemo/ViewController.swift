@@ -9,12 +9,12 @@
 import UIKit
 import CoreGraphics
 
-let NoUsed = true;
-let RowHeight:CGFloat = 60.0;
+let useCache = true;
+let RowHeight:CGFloat = 30.0;
 class ViewController: UIViewController {
     var colorLayer = CALayer.init();
     var tbView : UITableView!
-    let systemVersion = Float(UIDevice.current.systemVersion)!;
+    let systemVersion = Float(UIDevice.current.systemVersion);
     let cache = NSCache<AnyObject, AnyObject>.init();
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,36 +77,38 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if !useCache {
+            return defaultCellForIndex(indexPath: indexPath, tableView: tableView);
+        }
+        return cacheCellForIndex(indexPath: indexPath, tableView: tableView);
+    }
+    
+    func defaultCellForIndex(indexPath: IndexPath, tableView: UITableView) -> UITableViewCell {
         var cell = tableView.dequeueReusableCell(withIdentifier: "tableViewCell");
         if cell == nil {
             cell = UITableViewCell.init(style: .default, reuseIdentifier: "tableViewCell");
-            if systemVersion >= 10.0 {
-                // iOS 10.0下，没有图层混合，但是有离屏渲染
-                // iOS 10.0上，有图层混合，没有离屏渲染
-                cell?.imageView?.layer.masksToBounds = true;
-                cell?.imageView?.layer.cornerRadius = RowHeight / 2;
-            }
-
-            if  !NoUsed {
-                //  设置mask也是有离屏渲染的
-                let layer = CAShapeLayer.init();
-                layer.path = UIBezierPath.init(roundedRect: CGRect.init(x: 0.0, y: 0.0, width: RowHeight, height: RowHeight), cornerRadius: RowHeight / 2).cgPath;
-                layer.fillColor = UIColor.red.cgColor;
-                layer.strokeColor = UIColor.clear.cgColor;
-                cell?.imageView?.layer.mask = layer;
-            }
-            
+            cell?.imageView?.layer.masksToBounds = true;
+            cell?.imageView?.layer.cornerRadius = RowHeight / 2;
             cell?.imageView?.backgroundColor = UIColor.white;
             cell?.backgroundColor = UIColor.white;
         }
-
-//        getImage(indexPath: indexPath, forCell: cell!);
+        
+        let cacheIndex = indexPath.row % 20;
+        let nameString = "siberian\(cacheIndex)";
+        let image = UIImage.init(named: nameString);
+        cell?.imageView?.image = image;
         return cell!;
     }
-    
-//    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-//        getImage(indexPath: indexPath, forCell: cell);
-//    }
+
+    func cacheCellForIndex(indexPath: IndexPath, tableView: UITableView) -> UITableViewCell {
+        var cell = tableView.dequeueReusableCell(withIdentifier: "tableViewCell");
+        if cell == nil {
+            cell = UITableViewCell.init(style: .default, reuseIdentifier: "tableViewCell");
+            cell?.imageView?.backgroundColor = UIColor.white;
+            cell?.backgroundColor = UIColor.white;
+        }
+        return cell!;
+    }
     
     /// 从缓存中获取图片。
     func getImage(indexPath: IndexPath, forCell cell: UITableViewCell) {
@@ -114,34 +116,43 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource{
         let nameString = "siberian\(cacheIndex)";
         let image = UIImage.init(named: nameString);
         cell.imageView?.image = image;
-        //  iOS10.0一下通过后台线程将图片切成圆角图片
-        if systemVersion < 10.0 {
-            let cacheImage = cache.object(forKey: String(cacheIndex) as AnyObject);
-            if let lastCacheImage = cacheImage {
-                cell.imageView?.image = lastCacheImage as? UIImage;
-            }
-            else {
-                //  绘制圆角图片，没有离屏渲染，但是有图层混合。
-                DispatchQueue.global(qos: .background).async(execute: {
-                    let rect = CGRect.init(x: 0, y: 0, width: RowHeight, height: RowHeight);
-                    UIGraphicsBeginImageContextWithOptions(rect.size, false, UIScreen.main.scale);
-                    let path = UIBezierPath.init(roundedRect: rect, cornerRadius: rect.height / 2.0);
-                    path.addClip();
-                    image?.draw(in: rect);
-                    let lastImage = UIGraphicsGetImageFromCurrentImageContext();
-                    UIGraphicsEndImageContext();
-                    self.cache.setObject(_ :lastImage!, forKey: String(cacheIndex) as AnyObject, cost:Int((lastImage?.size.width)!) * Int((lastImage?.size.height)!) * Int(UIScreen.main.scale));
-                    DispatchQueue.main.async(execute: {
-                        cell.imageView?.image = lastImage;
-                    });
+        let cacheImage = cache.object(forKey: String(cacheIndex) as AnyObject);
+        if let lastCacheImage = cacheImage {
+            cell.imageView?.image = lastCacheImage as? UIImage;
+        }
+        else {
+            //  绘制圆角图片，没有离屏渲染，但是有图层混合。
+            DispatchQueue.global(qos: .background).async(execute: {
+                let rect = CGRect.init(x: 0, y: 0, width: RowHeight, height: RowHeight);
+                UIGraphicsBeginImageContextWithOptions(rect.size, false, UIScreen.main.scale);
+                let path = UIBezierPath.init(roundedRect: rect, cornerRadius: rect.height / 2.0);
+                path.addClip();
+                image?.draw(in: rect);
+                let lastImage = UIGraphicsGetImageFromCurrentImageContext();
+                UIGraphicsEndImageContext();
+                self.cache.setObject(_ :lastImage!, forKey: String(cacheIndex) as AnyObject, cost:Int((lastImage?.size.width)!) * Int((lastImage?.size.height)!) * Int(UIScreen.main.scale));
+                DispatchQueue.main.async(execute: {
+                    cell.imageView?.image = lastImage;
                 });
-            }
+            });
         }
     }
-    
+ 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
             //  在这里设置占位图片
 //        refreshTableView();
+        print(#function);
+    }
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        print(#function);
+    }
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        print(#function);
+    }
+    
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
         print(#function);
     }
     
