@@ -1,4 +1,4 @@
 language: objective-c
 xcode_project: SixClub3.xcodeproj  #path to SixClub3.xcodeproj
 xcode_scheme: SixClub3
-script: xcodebuild -project SixClub3 -scheme SixClub3 -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+script: xcodebuild -workspace SixClub.xcworkspace -scheme SixClub3 -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
