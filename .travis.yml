@@ -2,5 +2,5 @@ language: objective-c
 # xcode_project: SixClub3.xcodeproj  #path to SixClub3.xcodeproj
 # xcode_scheme: SixClub3
 script: 
-- xctool -workspace SixClub.xcworkspace -scheme SixClub3 -sdk iphoneos -configuration Debug OBJROOT=$PWD/build SYMROOT=$PWD/build ONLY_ACTIVE_ARCH=NO
+xcodebuild build -workspace SixClub.xcworkspace -scheme SixClub3
 # install: travis_wait mvn install
