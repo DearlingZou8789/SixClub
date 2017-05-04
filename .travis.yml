@@ -2,5 +2,5 @@ language: objective-c
 # xcode_project: SixClub3.xcodeproj  #path to SixClub3.xcodeproj
 # xcode_scheme: SixClub3
 script: 
-xcodebuild build -workspace SixClub.xcworkspace -scheme SixClub3
+- xcodebuild build -workspace SixClub.xcworkspace -scheme SixClub3
 # install: travis_wait mvn install
